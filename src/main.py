@@ -162,24 +162,24 @@ def download_data():
         input_project_thmb.show()
         button_download_data.text = "Change data"
         toggle_cards(["inference_type_selection_card"], enabled=True)
-        try:
-            select_florence_model_session.set_session_id(get_florence_active_task())
-        except Exception:
-            sly.logger.info("No Florence 2 model sessions found to select automatically.")
-        try:
-            select_sam2_model_session.set_session_id(get_sam2_active_task())
-        except Exception:
-            sly.logger.info("No SAM 2.1 model sessions found to select automatically.")
         if select_florence_model_session.get_selected_id() is not None:
             florence_set_model_type_button.enable()
-            set_florence_model_type()
         if select_sam2_model_session.get_selected_id() is not None:
             sam2_set_model_type_button.enable()
-            set_sam2_model_type()
         stepper.set_active_step(2)
         inference_type_selection_card.uncollapse()
         button_download_data.enable()
         progress_bar_download_data.hide()
+        try:
+            select_florence_model_session.set_session_id(get_florence_active_task())
+            set_florence_model_type()
+        except Exception:
+            sly.logger.info("No Florence 2 model sessions found to select automatically.")
+        try:
+            select_sam2_model_session.set_session_id(get_sam2_active_task())
+            set_sam2_model_type()
+        except Exception:
+            sly.logger.info("No SAM 2.1 model sessions found to select automatically.")
 
 
 progress_bar_download_data = Progress(hide_on_finish=False)
@@ -654,25 +654,24 @@ def update_images_preview():
 
     grid_gallery.clean_up()
     NEW_PREVIEW_IMAGES_INFOS = []
-
+    images_info_count = len(IMAGES_INFO_LIST)
     preview_images_number = preview_images_number_input.get_value()
+    preview_images_number = min(
+        preview_images_number, images_info_count, preview_images_number_input.max
+    )
+    preview_images_number_input.value = preview_images_number
 
     grid_gallery.columns_number = min(preview_images_number, g.COLUMNS_COUNT)
     grid_gallery._update_layout()
 
-    unique_image_ids = set()
-    for i in range(preview_images_number):
-        while True:
-            img_info = random.choice(IMAGES_INFO_LIST)
-            if img_info not in unique_image_ids:
-                unique_image_ids.add(img_info.id)
-                NEW_PREVIEW_IMAGES_INFOS.append(img_info)
-                grid_gallery.append(
-                    title=img_info.name,
-                    image_url=img_info.preview_url,
-                    column_index=int(i % g.COLUMNS_COUNT),
-                )
-                break
+    NEW_PREVIEW_IMAGES_INFOS = random.sample(IMAGES_INFO_LIST, preview_images_number)
+
+    for i, image in enumerate(NEW_PREVIEW_IMAGES_INFOS):
+        grid_gallery.append(
+            title=image.name,
+            image_url=image.preview_url,
+            column_index=int(i % g.COLUMNS_COUNT),
+        )
     global PREVIEW_IMAGES_INFOS
     PREVIEW_IMAGES_INFOS = NEW_PREVIEW_IMAGES_INFOS
     update_predictions_preview_button.enable()
