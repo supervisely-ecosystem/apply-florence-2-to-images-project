@@ -22,5 +22,6 @@ workspace = api.workspace.get_info_by_id(project_info.workspace_id)
 team = api.team.get_info_by_id(workspace.team_id)
 
 DATASET_IDS = [dataset_id] if dataset_id else []
-COLUMNS_COUNT = 6
+COLUMNS_COUNT = 4
 PREVIEW_IMAGES_COUNT = 18
+classes_mapping = {}

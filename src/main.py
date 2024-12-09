@@ -36,7 +36,8 @@ IS_IMAGE_PROMPT = True
 PREVIEW_IMAGES_INFOS = []
 CURRENT_REF_IMAGE_INDEX = 0
 REF_IMAGE_HISTORY = [CURRENT_REF_IMAGE_INDEX]
-MODEL_DATA = {}
+F_MODEL_DATA = {}
+S_MODEL_DATA = {}
 
 
 # fetching some images for preview
@@ -62,9 +63,9 @@ def get_images_infos_for_preview():
 
 IMAGES_INFO_LIST = get_images_infos_for_preview()
 
-######################
-### Input project card
-######################
+
+# ------------------------------------- Input Data Selection ------------------------------------- #
+
 dataset_selector = SelectDataset(
     project_id=g.project_id, multiselect=True, select_all_datasets=True
 )
@@ -138,10 +139,10 @@ def download_data():
         florence_set_model_type_button.text = "Select model"
         set_classess_prompts_button.disable()
         set_classess_prompts_button.text = "Set settings"
-        update_images_preview_button.disable()
-        update_predictions_preview_button.disable()
+        new_random_images_preview_button.disable()
+        get_predictions_preview_button.disable()
         input_project_thmb.hide()
-        run_model_button.disable()
+        apply_to_project.disable()
         stepper.set_active_step(1)
     else:
         button_download_data.disable()
@@ -155,8 +156,6 @@ def download_data():
             ],
             enabled=False,
         )
-
-        # build_table()
 
         input_project_thmb.set(info=g.project_info)
         input_project_thmb.show()
@@ -200,9 +199,9 @@ data_card = Card(
 )
 
 
-############################
-### Inference type selection
-############################
+# --------------------------------------- Connect To Models -------------------------------------- #
+
+
 select_florence_model_session = SelectAppSession(team_id=g.team.id, tags=["deployed_florence_2"])
 select_sam2_model_session = SelectAppSession(
     team_id=g.team.id, tags=["deployed_nn_object_segmentation"]
@@ -212,9 +211,9 @@ select_sam2_model_session = SelectAppSession(
 def get_florence_active_task():
     apps = g.api.app.get_list(
         team_id=g.team.id,
-        session_tags=["deployed_florence_2"],
+        session_tags=["deployed_nn"],
         only_running=True,
-        filter=[{"field": "name", "operator": "=", "value": "Serve Florence 2"}],
+        # filter=[{"field": "name", "operator": "=", "value": "Serve Florence 2"}],
     )
     for task in apps[0].tasks:
         if task.get("status") == "started":
@@ -269,10 +268,10 @@ select_sam2_model_text = Text(
 
 @florence_set_model_type_button.click
 def set_florence_model_type():
-    global MODEL_DATA
+    global F_MODEL_DATA
     if florence_set_model_type_button.text == "Disconnect model":
-        MODEL_DATA["session_id"] = None
-        MODEL_DATA["model_meta"] = None
+        F_MODEL_DATA["session_id"] = None
+        F_MODEL_DATA["model_meta"] = None
         florence_model_set_done.hide()
         florence_model_info.hide()
         select_florence_model_session.enable()
@@ -281,9 +280,9 @@ def set_florence_model_type():
         toggle_cards(["classess_settings_card", "preview_card", "run_model_card"], enabled=False)
         set_classess_prompts_button.disable()
         set_classess_prompts_button.text = "Set settings"
-        update_images_preview_button.disable()
-        update_predictions_preview_button.disable()
-        run_model_button.disable()
+        new_random_images_preview_button.disable()
+        get_predictions_preview_button.disable()
+        apply_to_project.disable()
         stepper.set_active_step(2)
     else:
         model_session_id = select_florence_model_session.get_selected_id()
@@ -298,8 +297,8 @@ def set_florence_model_type():
                     data={},
                 )
                 sly.logger.info(f"Model meta: {str(model_meta_json)}")
-                MODEL_DATA["model_meta"] = sly.ProjectMeta.from_json(model_meta_json)
-                MODEL_DATA["session_id"] = model_session_id
+                F_MODEL_DATA["model_meta"] = sly.ProjectMeta.from_json(model_meta_json)
+                F_MODEL_DATA["session_id"] = model_session_id
                 florence_model_set_done.text = "Model successfully connected."
                 florence_model_set_done.show()
                 florence_model_info.set_session_id(session_id=model_session_id)
@@ -329,18 +328,18 @@ def set_florence_model_type():
                     enabled=False,
                 )
                 set_classess_prompts_button.disable()
-                update_images_preview_button.disable()
-                update_predictions_preview_button.disable()
-                run_model_button.disable()
+                new_random_images_preview_button.disable()
+                get_predictions_preview_button.disable()
+                apply_to_project.disable()
                 stepper.set_active_step(2)
 
 
 @sam2_set_model_type_button.click
 def set_sam2_model_type():
-    global MODEL_DATA
+    global S_MODEL_DATA
     if sam2_set_model_type_button.text == "Disconnect model":
-        MODEL_DATA["session_id"] = None
-        MODEL_DATA["model_meta"] = None
+        S_MODEL_DATA["session_id"] = None
+        S_MODEL_DATA["model_meta"] = None
         sam2_model_set_done.hide()
         sam2_model_info.hide()
         select_sam2_model_session.enable()
@@ -349,9 +348,9 @@ def set_sam2_model_type():
         toggle_cards(["classess_settings_card", "preview_card", "run_model_card"], enabled=False)
         set_classess_prompts_button.disable()
         set_classess_prompts_button.text = "Set settings"
-        update_images_preview_button.disable()
-        update_predictions_preview_button.disable()
-        run_model_button.disable()
+        new_random_images_preview_button.disable()
+        get_predictions_preview_button.disable()
+        apply_to_project.disable()
         stepper.set_active_step(2)
     else:
         model_session_id = select_sam2_model_session.get_selected_id()
@@ -366,8 +365,8 @@ def set_sam2_model_type():
                     data={},
                 )
                 sly.logger.info(f"Model meta: {str(model_meta_json)}")
-                MODEL_DATA["model_meta"] = sly.ProjectMeta.from_json(model_meta_json)
-                MODEL_DATA["session_id"] = model_session_id
+                S_MODEL_DATA["model_meta"] = sly.ProjectMeta.from_json(model_meta_json)
+                S_MODEL_DATA["session_id"] = model_session_id
                 sam2_model_set_done.text = "Model successfully connected."
                 sam2_model_set_done.show()
                 sam2_model_info.set_session_id(session_id=model_session_id)
@@ -397,9 +396,9 @@ def set_sam2_model_type():
                     enabled=False,
                 )
                 set_classess_prompts_button.disable()
-                update_images_preview_button.disable()
-                update_predictions_preview_button.disable()
-                run_model_button.disable()
+                new_random_images_preview_button.disable()
+                get_predictions_preview_button.disable()
+                apply_to_project.disable()
                 stepper.set_active_step(2)
 
 
@@ -433,168 +432,35 @@ inference_type_selection_card = Card(
 inference_type_selection_card.collapse()
 
 
-#############################
-### Model input configuration
-#############################
-# text_prompt_textarea = Input(placeholder="blue car;dog;white rabbit;seagull")
-# text_prompt_textarea_field = Field(
-#     content=text_prompt_textarea,
-#     title="Describe what do you want to detect via NN",
-#     description="Names and descriptions of objects. For many objects use ; as separator.",
-# )
-# class_input = Input(placeholder="The class name for selected object")
-# class_input_field = Field(
-#     content=class_input,
-#     title="Class name",
-#     description="All detected objects will be added to project/dataset with this class name",
-# )
-# image_region_selector = ImageRegionSelector(
-#     widget_width="550px", widget_height="550px", points_disabled=True
-# )
+# ----------------------------------- Model Input Configuration ---------------------------------- #
 
-
-# @image_region_selector.bbox_changed
-# def bbox_updated(new_scaled_bbox):
-#     sly.logger.info(f"new_scaled_bbox: {new_scaled_bbox}")
-
-
-# previous_image_button = Button(
-#     "Previous image", icon="zmdi zmdi-skip-previous", button_size="small"
-# )
-# next_image_button = Button("Next image", icon="zmdi zmdi-skip-next", button_size="small")
-# random_image_button = Button("New random image", icon="zmdi zmdi-refresh", button_size="small")
 set_classess_prompts_button = Button("Set settings")
-# previous_image_button.disable()
-
-
-# @previous_image_button.click
-# def previous_image():
-#     global CURRENT_REF_IMAGE_INDEX, REF_IMAGE_HISTORY
-#     CURRENT_REF_IMAGE_INDEX = REF_IMAGE_HISTORY[
-#         -(REF_IMAGE_HISTORY[::-1].index(CURRENT_REF_IMAGE_INDEX) + 2)
-#     ]
-#     image_region_selector.image_update(IMAGES_INFO_LIST[CURRENT_REF_IMAGE_INDEX])
-#     if CURRENT_REF_IMAGE_INDEX == REF_IMAGE_HISTORY[0]:
-#         previous_image_button.disable()
-#     next_image_button.enable()
-
-
-# @next_image_button.click
-# def next_image():
-#     global CURRENT_REF_IMAGE_INDEX, REF_IMAGE_HISTORY
-#     if CURRENT_REF_IMAGE_INDEX != REF_IMAGE_HISTORY[-1]:
-#         CURRENT_REF_IMAGE_INDEX = REF_IMAGE_HISTORY[
-#             REF_IMAGE_HISTORY.index(CURRENT_REF_IMAGE_INDEX) + 1
-#         ]
-#     else:
-#         if CURRENT_REF_IMAGE_INDEX < len(IMAGES_INFO_LIST) - 1:
-#             CURRENT_REF_IMAGE_INDEX += 1
-#             REF_IMAGE_HISTORY.append(CURRENT_REF_IMAGE_INDEX)
-
-#     if len(IMAGES_INFO_LIST) - 1 == CURRENT_REF_IMAGE_INDEX:
-#         next_image_button.disable()
-#     REF_IMAGE_HISTORY = REF_IMAGE_HISTORY[-10:]
-#     image_region_selector.image_update(IMAGES_INFO_LIST[CURRENT_REF_IMAGE_INDEX])
-#     previous_image_button.enable()
-
-
-# @random_image_button.click
-# def random_image():
-#     global CURRENT_REF_IMAGE_INDEX, REF_IMAGE_HISTORY
-#     CURRENT_REF_IMAGE_INDEX = random.randint(0, len(IMAGES_INFO_LIST) - 1)
-#     REF_IMAGE_HISTORY.append(CURRENT_REF_IMAGE_INDEX)
-#     REF_IMAGE_HISTORY = REF_IMAGE_HISTORY[-10:]
-#     image_region_selector.image_update(IMAGES_INFO_LIST[CURRENT_REF_IMAGE_INDEX])
-#     if CURRENT_REF_IMAGE_INDEX != REF_IMAGE_HISTORY[0]:
-#         previous_image_button.enable()
-#     if CURRENT_REF_IMAGE_INDEX < len(IMAGES_INFO_LIST) - 1:
-#         next_image_button.enable()
 
 
 @set_classess_prompts_button.click
 def set_model_input():
-    global IS_IMAGE_PROMPT
     if classess_settings_card.is_disabled() is True:
         set_classess_prompts_button.text = "Set settings"
         toggle_cards(["classess_settings_card"], enabled=True)
         toggle_cards(["preview_card", "run_model_card"], enabled=False)
-        update_images_preview_button.disable()
-        update_predictions_preview_button.disable()
-        run_model_button.disable()
+        new_random_images_preview_button.disable()
+        get_predictions_preview_button.disable()
+        apply_to_project.disable()
         stepper.set_active_step(3)
         classess_settings_card.uncollapse()
     else:
-        # if IS_IMAGE_PROMPT and class_input.get_value().strip() == "":
-        #     sly.app.show_dialog("Wrong value", "Class name can not be empty.", status="error")
-        #     sly.logger.warning("Class name can not be empty.")
-        #     return
-        # elif not IS_IMAGE_PROMPT and text_prompt_textarea.get_value().strip() == "":
-        #     sly.app.show_dialog("Wrong value", "Text prompt can not be empty.", status="error")
-        #     sly.logger.warning("Text prompt can not be empty.")
-        #     return
-        # else:
+        g.classes_mapping = classes_mapping.get_mapping()
         set_classess_prompts_button.text = "Change model input"
         update_images_preview()
         toggle_cards(["classess_settings_card"], enabled=False)
         toggle_cards(["preview_card", "run_model_card"], enabled=True)
-        update_images_preview_button.enable()
-        update_predictions_preview_button.enable()
-        run_model_button.enable()
+        new_random_images_preview_button.enable()
+        get_predictions_preview_button.enable()
+        apply_to_project.enable()
         stepper.set_active_step(5)
 
 
-# images_table = Table(fixed_cols=1, sort_column_id=1, per_page=15)
-# columns = [
-#     "COLOR",
-#     "CLASS NAME",
-#     "TEXT PROMPT",
-# ]
-
 classes_mapping = ClassesMappingWithPrompts(g.project_meta.obj_classes)
-
-
-# def build_table():
-#     global images_table, columns
-
-#     sly.logger.debug("Trying to build images table...")
-
-#     images_table.loading = True
-#     images_table.read_json(None)
-
-#     rows = []
-
-#     for obj_class in g.project_meta.obj_classes:
-#         name = obj_class.name
-#         color = obj_class.color
-#         rows.append(
-#             [
-#                 f'<span style="color: rgb{tuple(color)}; font-size: 20px;">■</span>',
-#                 name,
-#                 f"<input type='text' placeholder='Text prompt for {name}'>",
-#             ]
-#         )
-
-#     table_data = {"columns": columns, "data": rows}
-
-#     images_table.read_json(table_data)
-
-#     sly.logger.debug(f"Successfully built images table with {len(rows)} rows.")
-
-#     images_table.loading = False
-
-
-# @images_table.click
-# def handle_table_button(datapoint: sly.app.widgets.Table.ClickedDataPoint):
-#     if datapoint.button_name != "SELECT":
-#         return
-
-#     global IMAGES_INFO_LIST
-
-#     for image_info in IMAGES_INFO_LIST:
-#         if image_info.id == datapoint.row["IMAGE ID"]:
-#             image_region_selector.image_update(image_info)
-
-
 classess_selection_tabs = Container(
     [
         Grid(
@@ -603,17 +469,6 @@ classess_selection_tabs = Container(
         ),
     ]
 )
-
-
-# @classess_selection_tabs.value_changed
-# def model_input_changed(val):
-#     # global IS_IMAGE_PROMPT
-#     # IS_IMAGE_PROMPT = True if val == "Reference image" else False
-#     # if val == "Reference image":
-#     #     confidence_threshhold_input.value = 0.8
-#     # else:
-#     #     confidence_threshhold_input.value = 0.1
-#     pass
 
 
 classess_settings_card = Card(
@@ -630,9 +485,8 @@ classess_settings_card = Card(
 classess_settings_card.collapse()
 
 
-###################
-### Results preview
-###################
+# --------------------------------------- Inference Preview -------------------------------------- #
+
 grid_gallery = GridGallery(
     columns_number=g.COLUMNS_COUNT,
     annotations_opacity=0.5,
@@ -644,12 +498,14 @@ grid_gallery = GridGallery(
 )
 grid_gallery.hide()
 
-update_images_preview_button = Button("New random images", icon="zmdi zmdi-refresh")
+new_random_images_preview_button = Button(
+    "New random images", icon="zmdi zmdi-refresh", button_size="mini"
+)
 
 
-@update_images_preview_button.click
+@new_random_images_preview_button.click
 def update_images_preview():
-    update_predictions_preview_button.disable()
+    get_predictions_preview_button.disable()
     global IMAGES_INFO_LIST
 
     grid_gallery.clean_up()
@@ -674,18 +530,20 @@ def update_images_preview():
         )
     global PREVIEW_IMAGES_INFOS
     PREVIEW_IMAGES_INFOS = NEW_PREVIEW_IMAGES_INFOS
-    update_predictions_preview_button.enable()
+    get_predictions_preview_button.enable()
 
     grid_gallery.show()
 
 
-update_predictions_preview_button = Button("Predictions preview", icon="zmdi zmdi-labels")
+get_predictions_preview_button = Button(
+    "Get Predictions Preview", icon="zmdi zmdi-labels", button_type="success"
+)
 
 
-@update_predictions_preview_button.click
+@get_predictions_preview_button.click
 def update_predictions_preview():
-    global IS_IMAGE_PROMPT
-    update_images_preview_button.disable()
+
+    new_random_images_preview_button.disable()
 
     # for TEXT PROMPT
     # text_queries = text_prompt_textarea.get_value().split(";")
@@ -693,39 +551,45 @@ def update_predictions_preview():
     # selected_bbox = image_region_selector.get_bbox()
     # x0, y0, x1, y1 = *selected_bbox[0], *selected_bbox[1]
 
-    annotations_list = []
-
+    annotations_map = {}
+    mapping = {key: value["value"] for key, value in g.classes_mapping.items()}
     with preview_progress(
         message="Generating predictions...", total=len(PREVIEW_IMAGES_INFOS)
     ) as pbar:
         for i, image_info in enumerate(PREVIEW_IMAGES_INFOS):
-            if IS_IMAGE_PROMPT:
-                inference_settings = dict(
-                    mode="reference_image",
-                    # reference_bbox=[y0, x0, y1, x1],
-                    # reference_image_id=image_region_selector._image_id,
-                    # reference_class_name=class_input.get_value(),
+            annotations_map[image_info.id] = {"annotations": [], "image_info": image_info}
+            image_info: sly.ImageInfo
+            # text_queries = text_prompt_textarea.get_value().split(";")
+            inference_settings = {"mapping": mapping, "mode": "text_prompt"}
+            f_ann = g.api.task.send_request(
+                F_MODEL_DATA["session_id"],
+                "inference_image_id",
+                data={"image_id": image_info.id, "settings": inference_settings},
+                timeout=500,
+            )
+            f_annotation = inference_json_anno_preprocessing(f_ann, g.project_meta, suffix="bbox")
+            s_labels = []
+            for label in f_annotation.labels:
+                class_name = label.obj_class.name.rstrip("_bbox")
+                rectangle = label.geometry.to_json()
+                inference_settings.update(
+                    {
+                        "mode": "bbox",
+                        "rectangle": rectangle,
+                        "bbox_class_name": class_name,
+                    }
                 )
-                ann = g.api.task.send_request(
-                    MODEL_DATA["session_id"],
+                s_ann = g.api.task.send_request(
+                    S_MODEL_DATA["session_id"],
                     "inference_image_id",
                     data={"image_id": image_info.id, "settings": inference_settings},
                     timeout=500,
                 )
-            else:
-                # text_queries = text_prompt_textarea.get_value().split(";")
-                inference_settings = dict(
-                    mode="text_prompt",
-                    # text_queries=text_queries,
-                )
-                ann = g.api.task.send_request(
-                    MODEL_DATA["session_id"],
-                    "inference_image_id",
-                    data={"image_id": image_info.id, "settings": inference_settings},
-                    timeout=500,
-                )
-            new_annotation = inference_json_anno_preprocessing(ann, g.project_meta)
-            annotations_list.append(new_annotation)
+                s_labels.extend(s_ann["annotation"]["objects"])
+            s_ann["annotation"]["objects"] = s_labels
+            s_annotation = inference_json_anno_preprocessing(s_ann, g.project_meta, suffix="mask")
+            merged_annotation = f_annotation.add_labels(s_annotation.labels)
+            annotations_map[image_info.id]["annotations"].append(merged_annotation)
             sly.logger.info(
                 f"{i+1} image processed. {len(PREVIEW_IMAGES_INFOS) - (i+1)} images left."
             )
@@ -733,21 +597,33 @@ def update_predictions_preview():
             pbar.update(1)
 
     grid_gallery.clean_up()
-    for i, (image_info, annotation) in enumerate(zip(PREVIEW_IMAGES_INFOS, annotations_list)):
-        grid_gallery.append(
-            image_url=image_info.preview_url,
-            annotation=annotation,
-            title=image_info.name,
-            column_index=int(i % g.COLUMNS_COUNT),
-        )
-    update_images_preview_button.enable()
+    for i, (id, info) in enumerate(annotations_map.items()):
+        image_info = info["image_info"]
+        annotations = info["annotations"]
+        for annotation in annotations:
+            grid_gallery.append(
+                image_url=image_info.preview_url,
+                annotation=annotation,
+                title=image_info.name,
+                column_index=int(i % g.COLUMNS_COUNT),
+            )
+    new_random_images_preview_button.enable()
 
 
-preview_images_number_input = InputNumber(value=12, min=1, max=60, step=1)
+preview_images_number_input = InputNumber(value=4, min=1, max=60, step=1)
+# preview_images_number_field = Field(
+#     title="Number of images in preview",
+#     description="Select how many images should be in preview gallery",
+#     content=preview_images_number_input,
+# )
 preview_images_number_field = Field(
     title="Number of images in preview",
     description="Select how many images should be in preview gallery",
-    content=preview_images_number_input,
+    content=Empty(),
+)
+
+input_and_new_random_images_preview_flexbox = Flexbox(
+    widgets=[preview_images_number_input, new_random_images_preview_button]
 )
 
 
@@ -764,8 +640,8 @@ preview_progress = Progress()
 
 preview_buttons_flexbox = Flexbox(
     widgets=[
-        update_images_preview_button,
-        update_predictions_preview_button,
+        # new_random_images_preview_button,
+        get_predictions_preview_button,
     ],
 )
 
@@ -776,6 +652,7 @@ preview_card = Card(
     content=Container(
         [
             preview_images_number_field,
+            input_and_new_random_images_preview_flexbox,
             preview_buttons_flexbox,
             preview_progress,
             grid_gallery,
@@ -786,16 +663,14 @@ preview_card = Card(
 preview_card.collapse()
 
 
-#######################
-### Applying model card
-#######################
+# -------------------------------------- Applying Model Card ------------------------------------- #
 
 
 destination_project = DestinationProject(g.workspace.id, project_type=sly.ProjectType.IMAGES)
-run_model_button = Button("Run model")
+apply_to_project = Button("Apply to Project")
 
 
-@run_model_button.click
+@apply_to_project.click
 def run_model():
     toggle_cards(
         [
@@ -814,10 +689,10 @@ def run_model():
     # previous_image_button.disable()
     florence_set_model_type_button.disable()
     sam2_set_model_type_button.disable()
-    update_images_preview_button.disable()
-    update_predictions_preview_button.disable()
+    new_random_images_preview_button.disable()
+    get_predictions_preview_button.disable()
     output_project_thmb.hide()
-    global IS_IMAGE_PROMPT, MODEL_DATA
+    global IS_IMAGE_PROMPT, F_MODEL_DATA, S_MODEL_DATA
 
     def get_inference_settings():
         if IS_IMAGE_PROMPT:
@@ -838,7 +713,9 @@ def run_model():
         return inference_settings
 
     try:
-        output_project_info = run(destination_project, get_inference_settings(), MODEL_DATA)
+        output_project_info = run(
+            destination_project, get_inference_settings(), F_MODEL_DATA, S_MODEL_DATA
+        )
 
         output_project_thmb.set(output_project_info)
         output_project_thmb.show()
@@ -851,14 +728,14 @@ def run_model():
         set_classess_prompts_button.enable()
         florence_set_model_type_button.enable()
         sam2_set_model_type_button.enable()
-        run_model_button.enable()
+        apply_to_project.enable()
 
 
 output_project_thmb = ProjectThumbnail()
 output_project_thmb.hide()
 run_model_card = Card(
     title="Apply Models",
-    content=Container([destination_project, run_model_button, output_project_thmb]),
+    content=Container([destination_project, apply_to_project, output_project_thmb]),
     collapsable=True,
 )
 run_model_card.collapse()
@@ -897,7 +774,7 @@ def toggle_cards(cards: List[str], enabled: bool = False):
         ),
         "preview_card": (
             preview_card,
-            [grid_gallery, update_images_preview_button, update_predictions_preview_button],
+            [grid_gallery, new_random_images_preview_button, get_predictions_preview_button],
         ),
         "run_model_card": (run_model_card, [destination_project]),
     }
@@ -920,7 +797,7 @@ toggle_cards(
 florence_set_model_type_button.disable()
 sam2_set_model_type_button.disable()
 set_classess_prompts_button.disable()
-run_model_button.disable()
+apply_to_project.disable()
 
 stepper = Stepper(
     widgets=[

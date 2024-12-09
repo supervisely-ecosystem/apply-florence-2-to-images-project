@@ -12,8 +12,9 @@ apply_progress_bar = Progress(hide_on_finish=False)
 
 def run(
     destination_project: sly.app.widgets.DestinationProject,
-    inference_settings,
-    MODEL_DATA,
+    inference_settings: dict,
+    F_MODEL_DATA: dict,
+    S_MODEL_DATA: dict,
 ):
     def add_new_classes_to_proj_meta(
         anns: List[sly.Annotation], output_project_meta: sly.ProjectMeta
@@ -91,9 +92,22 @@ def run(
                 sly.logger.debug(
                     f"Sending request to generate predictions for {len(img_infos_batch)} images..."
                 )
-                new_anns = [
+                f_new_anns = [
                     g.api.task.send_request(
-                        MODEL_DATA["session_id"],
+                        F_MODEL_DATA["session_id"],
+                        "inference_image_id",
+                        data={
+                            "image_id": image_info.id,
+                            "settings": inference_settings,
+                        },
+                        timeout=500,
+                    )
+                    for image_info in img_infos_batch
+                ]
+                inference_settings.update({"mode": "bbox", "annotations": f_new_anns})
+                s_new_anns = [
+                    g.api.task.send_request(
+                        S_MODEL_DATA["session_id"],
                         "inference_image_id",
                         data={
                             "image_id": image_info.id,
@@ -105,13 +119,13 @@ def run(
                 ]
                 sly.logger.debug(f"Updating the project meta with new classes")
                 output_project_meta, new_ann = add_new_classes_to_proj_meta(
-                    new_anns, output_project_meta
+                    s_new_anns, output_project_meta
                 )
 
                 sly.logger.debug(f"Merging new and existing annotations")
                 result_anns = []
                 new_anns_objects_added = 0
-                for image_ann, new_ann in zip(image_anns, new_anns):
+                for image_ann, new_ann in zip(image_anns, s_new_anns):
                     new_ann = sly.Annotation.from_json(
                         new_ann[ApiField.ANNOTATION], output_project_meta
                     )
