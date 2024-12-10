@@ -96,6 +96,7 @@ def run(
             output_dataset_id = get_output_ds(destination_project, dataset.name)
             result_anns = []
             for image in images_infos:
+                temp_inference_settings = inference_settings.copy()
                 new_anns_objects_added = 0
                 # get existing and new annotations
                 image_ann = g.api.annotation.download(image.id)
@@ -104,7 +105,7 @@ def run(
                 f_new_ann = g.api.task.send_request(
                     F_MODEL_DATA["session_id"],
                     "inference_image_id",
-                    data={"image_id": image.id, "settings": inference_settings},
+                    data={"image_id": image.id, "settings": temp_inference_settings},
                     timeout=500,
                 )
                 if g.save_bboxes:
@@ -121,7 +122,7 @@ def run(
                 for label in f_new_ann[ApiField.ANNOTATION][AnnotationJsonFields.LABELS]:
                     class_name = label["classTitle"].rstrip("_bbox")
                     rectangle = {"points": label["points"]}
-                    inference_settings.update(
+                    temp_inference_settings.update(
                         {
                             "input_image_id": image.id,
                             "mode": "bbox",
@@ -132,7 +133,7 @@ def run(
                     s_new_ann = g.api.task.send_request(
                         S_MODEL_DATA["session_id"],
                         "inference_image_id",
-                        data={"image_id": image.id, "settings": inference_settings},
+                        data={"image_id": image.id, "settings": temp_inference_settings},
                         timeout=500,
                     )
                     s_labels.extend(s_new_ann[ApiField.ANNOTATION][AnnotationJsonFields.LABELS])
