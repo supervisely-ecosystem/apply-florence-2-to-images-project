@@ -6,10 +6,10 @@ def inference_json_anno_preprocessing(
     ann, project_meta: sly.ProjectMeta, suffix: Literal["bbox", "mask"] = None
 ) -> sly.Annotation:
     temp_meta = project_meta.clone()
-    pred_classes = []
+    # pred_classes = []
     for i, obj in enumerate(ann["annotation"]["objects"]):
         class_: str = obj["classTitle"]
-        pred_classes.append(class_)
+        # pred_classes.append(class_)
         ann["annotation"]["objects"][i]["classTitle"] = class_
         if suffix.endswith("bbox"):
             class_type = sly.Rectangle

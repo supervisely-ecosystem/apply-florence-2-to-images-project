@@ -9,7 +9,7 @@
 		<tr>
 			<th style="padding: 3px"></th>
 			<th style="padding: 3px 20px">Class</th>
-			<th style="padding: 3px 20px">Text prompt</th>
+			<th style="padding: 3px 20px; text-align: left">Text prompt</th>
 		</tr>
 		<tr v-for="(obj_class, idx) in data.{{{widget.widget_id}}}.classes">
 			<td>
@@ -36,8 +36,10 @@
 				<el-input
 					v-model="state.{{{widget.widget_id}}}.classes_values[idx].value"
 					size="mini"
-					maxlength="32"
-					style="width: 160px"
+					type="textarea"
+					maxlength="3000"
+					autosize="{minRows: 1, maxRows: 2}"
+					style="width: 500px"
 					:disabled="!state.{{{widget.widget_id}}}.classes_values[idx].selected"
 					@change="
                         state.{{{widget.widget_id}}}.classes_values[idx].default = $event == obj_class.default_value;

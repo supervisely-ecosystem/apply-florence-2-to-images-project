@@ -1,6 +1,6 @@
 import supervisely as sly
 import src.globals as g
-from typing import List
+from typing import List, Literal
 from supervisely.app.widgets import Progress
 from supervisely.api.module_api import ApiField
 from supervisely.annotation.label import LabelJsonFields
@@ -16,24 +16,37 @@ def run(
     F_MODEL_DATA: dict,
     S_MODEL_DATA: dict,
 ):
-    def add_new_classes_to_proj_meta(
-        anns: List[sly.Annotation], output_project_meta: sly.ProjectMeta
+
+    def update_proj_meta_classes(
+        ann: dict,
+        output_project_meta: sly.ProjectMeta,
+        suffix: Literal["bbox", "mask"],
     ) -> sly.ProjectMeta:
         project_meta_needs_update = False
-        for ann in anns:
-            for label in ann[ApiField.ANNOTATION][AnnotationJsonFields.LABELS]:
-                new_obj_class_name = label[LabelJsonFields.OBJ_CLASS_NAME] + "_pred"
-                label[LabelJsonFields.OBJ_CLASS_NAME] += "_pred"
-                if output_project_meta.get_obj_class(new_obj_class_name) is None:
-                    sly.logger.debug(f"Adding {new_obj_class_name} to the project meta")
-                    new_obj_class = sly.ObjClass(new_obj_class_name, sly.Rectangle)
-                    output_project_meta = output_project_meta.add_obj_class(new_obj_class)
-                    project_meta_needs_update = True
+        for label in ann[ApiField.ANNOTATION][AnnotationJsonFields.LABELS]:
+            new_obj_class_name: str = label[LabelJsonFields.OBJ_CLASS_NAME]
+            if output_project_meta.get_obj_class(new_obj_class_name) is None:
+                sly.logger.debug(f"Adding {new_obj_class_name} to the project meta")
+                if suffix == "bbox":
+                    geometry_type = sly.Rectangle
+                elif suffix == "mask":
+                    geometry_type = sly.Bitmap
+                else:
+                    raise NotImplementedError("Suffix should be either 'bbox' or 'mask'")
+                class_color = None
+                orig_class = output_project_meta.get_obj_class(
+                    new_obj_class_name.rstrip(f"_{suffix}")
+                )
+                if orig_class is not None:
+                    class_color = orig_class.color
+                new_obj_class = sly.ObjClass(new_obj_class_name, geometry_type, color=class_color)
+                output_project_meta = output_project_meta.add_obj_class(new_obj_class)
+                project_meta_needs_update = True
 
         if project_meta_needs_update:
             g.api.project.update_meta(output_project_id, output_project_meta)
             sly.logger.debug(f"Project meta successfully updated")
-        return output_project_meta, anns
+        return output_project_meta
 
     output_project_id = destination_project.get_selected_project_id()
     if output_project_id is None:
@@ -79,79 +92,84 @@ def run(
     total_items_cnt = sum([ds.items_count for ds in datasets_list])
     with apply_progress_bar(message="Applying model to project...", total=total_items_cnt) as pbar:
         for dataset in datasets_list:
-            images_info = g.api.image.get_list(dataset.id)
+            images_infos = g.api.image.get_list(dataset.id)
             output_dataset_id = get_output_ds(destination_project, dataset.name)
-            for img_infos_batch in sly.batched(images_info):
-                img_ids = [image_info.id for image_info in img_infos_batch]
-
+            result_anns = []
+            for image in images_infos:
+                new_anns_objects_added = 0
                 # get existing and new annotations
-                image_anns = [
-                    sly.Annotation.from_json(img_ann.annotation, output_project_meta)
-                    for img_ann in g.api.annotation.download_batch(dataset.id, img_ids)
-                ]
-                sly.logger.debug(
-                    f"Sending request to generate predictions for {len(img_infos_batch)} images..."
+                image_ann = g.api.annotation.download(image.id)
+                image_ann = sly.Annotation.from_json(image_ann.annotation, g.project_meta)
+                sly.logger.debug(f"Sending request to generate predictions for {image.id} image...")
+                f_new_ann = g.api.task.send_request(
+                    F_MODEL_DATA["session_id"],
+                    "inference_image_id",
+                    data={"image_id": image.id, "settings": inference_settings},
+                    timeout=500,
                 )
-                f_new_anns = [
-                    g.api.task.send_request(
-                        F_MODEL_DATA["session_id"],
-                        "inference_image_id",
-                        data={
-                            "image_id": image_info.id,
-                            "settings": inference_settings,
-                        },
-                        timeout=500,
+                if g.save_bboxes:
+                    output_project_meta = update_proj_meta_classes(
+                        f_new_ann, output_project_meta, suffix="bbox"
                     )
-                    for image_info in img_infos_batch
-                ]
-                inference_settings.update({"mode": "bbox", "annotations": f_new_anns})
-                s_new_anns = [
-                    g.api.task.send_request(
+                    f_image_ann = sly.Annotation.from_json(
+                        f_new_ann[ApiField.ANNOTATION], output_project_meta
+                    )
+                    new_anns_objects_added += len(
+                        f_new_ann[ApiField.ANNOTATION][AnnotationJsonFields.LABELS]
+                    )
+                s_labels = []
+                for label in f_new_ann[ApiField.ANNOTATION][AnnotationJsonFields.LABELS]:
+                    class_name = label["classTitle"].rstrip("_bbox")
+                    rectangle = {"points": label["points"]}
+                    inference_settings.update(
+                        {
+                            "input_image_id": image.id,
+                            "mode": "bbox",
+                            "rectangle": rectangle,
+                            "bbox_class_name": class_name,
+                        }
+                    )
+                    s_new_ann = g.api.task.send_request(
                         S_MODEL_DATA["session_id"],
                         "inference_image_id",
-                        data={
-                            "image_id": image_info.id,
-                            "settings": inference_settings,
-                        },
+                        data={"image_id": image.id, "settings": inference_settings},
                         timeout=500,
                     )
-                    for image_info in img_infos_batch
-                ]
+                    s_labels.extend(s_new_ann[ApiField.ANNOTATION][AnnotationJsonFields.LABELS])
+                s_new_ann[ApiField.ANNOTATION][AnnotationJsonFields.LABELS] = s_labels
                 sly.logger.debug(f"Updating the project meta with new classes")
-                output_project_meta, new_ann = add_new_classes_to_proj_meta(
-                    s_new_anns, output_project_meta
+                output_project_meta = update_proj_meta_classes(
+                    s_new_ann, output_project_meta, suffix="mask"
                 )
-
+                new_anns_objects_added += len(
+                    s_new_ann[ApiField.ANNOTATION][AnnotationJsonFields.LABELS]
+                )
                 sly.logger.debug(f"Merging new and existing annotations")
-                result_anns = []
-                new_anns_objects_added = 0
-                for image_ann, new_ann in zip(image_anns, s_new_anns):
-                    new_ann = sly.Annotation.from_json(
-                        new_ann[ApiField.ANNOTATION], output_project_meta
-                    )
-                    new_anns_objects_added += len(new_ann.labels)
-                    result_anns.append(image_ann.add_labels(new_ann.labels))
+
+                s_image_ann = sly.Annotation.from_json(
+                    s_new_ann[ApiField.ANNOTATION], output_project_meta
+                )
+                result_ann = image_ann.add_labels(f_image_ann.labels)
+                result_ann = result_ann.add_labels(s_image_ann.labels)
+                result_anns.append(result_ann)
                 if new_anns_objects_added > 0:
                     sly.logger.debug(f"New annotations added to images: {new_anns_objects_added}")
                 else:
                     sly.logger.info(f"No objects were added during inference for this batch")
 
-                # if (
-                #     destination_project.get_selected_project_id() != g.project_id
-                #     or destination_project.get_selected_dataset_id() != g.dataset_id
-                # ):
-                image_names = [image_info.name for image_info in img_infos_batch]
-                sly.logger.debug(f"Uploading {len(image_names)} images")
-                image_infos = g.api.image.upload_ids(
-                    output_dataset_id,
-                    image_names,
-                    img_ids,
-                    conflict_resolution=destination_project.get_conflict_resolution(),
-                )
-                img_ids = [image_info.id for image_info in image_infos]
-                sly.logger.debug(f"Uploading {len(result_anns)} annotations")
-                g.api.annotation.upload_anns(img_ids, result_anns)
+            image_names = [image_info.name for image_info in images_infos]
+            img_ids = [image_info.id for image_info in images_infos]
+            sly.logger.debug(f"Uploading {len(image_names)} images")
+            uploaded_images_infos = g.api.image.upload_ids(
+                output_dataset_id,
+                image_names,
+                img_ids,
+                conflict_resolution=destination_project.get_conflict_resolution(),
+            )
+            img_ids = [image_info.id for image_info in uploaded_images_infos]
+            sly.logger.debug(f"Uploading {len(result_anns)} annotations")
+            g.api.annotation.upload_anns(img_ids, result_anns)
 
-                pbar.update(len(img_ids))
+            pbar.update(len(img_ids))
 
     return g.api.project.get_info_by_id(output_project_id)

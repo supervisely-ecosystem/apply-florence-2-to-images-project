@@ -310,6 +310,7 @@ def set_florence_model_type():
                 set_classess_prompts_button.enable()
                 if sam2_set_model_type_button.text == "Disconnect model":
                     stepper.set_active_step(3)
+                    classes_mapping.set(g.project_meta.obj_classes)
                     classess_settings_card.uncollapse()
             except Exception as e:
                 sly.app.show_dialog(
@@ -378,6 +379,7 @@ def set_sam2_model_type():
                 set_classess_prompts_button.enable()
                 if florence_set_model_type_button.text == "Disconnect model":
                     stepper.set_active_step(3)
+                    classes_mapping.set(g.project_meta.obj_classes)
                     classess_settings_card.uncollapse()
             except Exception as e:
                 sly.app.show_dialog(
@@ -446,11 +448,14 @@ def set_model_input():
         new_random_images_preview_button.disable()
         get_predictions_preview_button.disable()
         apply_to_project.disable()
+        classes_mapping.enable()
         stepper.set_active_step(3)
+        classes_mapping.set(g.project_meta.obj_classes)
         classess_settings_card.uncollapse()
     else:
         g.classes_mapping = classes_mapping.get_mapping()
-        set_classess_prompts_button.text = "Change model input"
+        set_classess_prompts_button.text = "Change Prompts"
+        classes_mapping.disable()
         update_images_preview()
         toggle_cards(["classess_settings_card"], enabled=False)
         toggle_cards(["preview_card", "run_model_card"], enabled=True)
@@ -464,7 +469,7 @@ classes_mapping = ClassesMappingWithPrompts(g.project_meta.obj_classes)
 classess_selection_tabs = Container(
     [
         Grid(
-            columns=2,
+            columns=1,
             widgets=[classes_mapping],
         ),
     ]
@@ -493,7 +498,7 @@ grid_gallery = GridGallery(
     show_opacity_slider=True,
     enable_zoom=False,
     sync_views=False,
-    fill_rectangle=True,
+    fill_rectangle=False,
     show_preview=True,
 )
 grid_gallery.hide()
@@ -545,12 +550,6 @@ def update_predictions_preview():
 
     new_random_images_preview_button.disable()
 
-    # for TEXT PROMPT
-    # text_queries = text_prompt_textarea.get_value().split(";")
-    # for IMAGE REFERENCE
-    # selected_bbox = image_region_selector.get_bbox()
-    # x0, y0, x1, y1 = *selected_bbox[0], *selected_bbox[1]
-
     annotations_map = {}
     mapping = {key: value["value"] for key, value in g.classes_mapping.items()}
     with preview_progress(
@@ -574,6 +573,7 @@ def update_predictions_preview():
                 rectangle = label.geometry.to_json()
                 inference_settings.update(
                     {
+                        "input_image_id": image_info.id,
                         "mode": "bbox",
                         "rectangle": rectangle,
                         "bbox_class_name": class_name,
@@ -695,21 +695,8 @@ def run_model():
     global IS_IMAGE_PROMPT, F_MODEL_DATA, S_MODEL_DATA
 
     def get_inference_settings():
-        if IS_IMAGE_PROMPT:
-            # selected_bbox = image_region_selector.get_bbox()
-            # x0, y0, x1, y1 = *selected_bbox[0], *selected_bbox[1]
-            inference_settings = dict(
-                mode="reference_image",
-                # reference_bbox=[y0, x0, y1, x1],
-                # reference_image_id=image_region_selector._image_id,
-                # reference_class_name=class_input.get_value(),
-            )
-        else:
-            # text_queries = text_prompt_textarea.get_value().split(";")
-            inference_settings = dict(
-                mode="text_prompt",
-                # text_queries=text_queries,
-            )
+        mapping = {key: value["value"] for key, value in g.classes_mapping.items()}
+        inference_settings = {"mapping": mapping, "mode": "text_prompt"}
         return inference_settings
 
     try:
