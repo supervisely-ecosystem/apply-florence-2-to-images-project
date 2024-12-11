@@ -1,7 +1,7 @@
 import random
 from typing import List
 
-from src.utils import run
+from src.utils import apply_to_project_event, project_progress_bar, images_update_bar
 from src.ui.classes_mapping_prompts import ClassesMappingWithPrompts
 
 import supervisely as sly
@@ -27,6 +27,7 @@ from supervisely.app.widgets import (
     Empty,
     Table,
     Text,
+    Collapse,
 )
 
 import src.globals as g
@@ -126,10 +127,10 @@ def download_data():
         toggle_cards(["data_card"], enabled=True)
         toggle_cards(
             [
-                "inference_type_selection_card",
+                "select_models_card",
                 "classess_settings_card",
                 "preview_card",
-                "run_model_card",
+                "apply_to_project_card",
             ],
             enabled=False,
         )
@@ -137,12 +138,18 @@ def download_data():
         button_download_data.text = "Select data"
         florence_set_model_type_button.disable()
         florence_set_model_type_button.text = "Select model"
+        sam2_set_model_type_button.disable()
+        sam2_set_model_type_button.text = "Select model"
         set_classess_prompts_button.disable()
         set_classess_prompts_button.text = "Set settings"
         new_random_images_preview_button.disable()
         get_predictions_preview_button.disable()
         input_project_thmb.hide()
-        apply_to_project.disable()
+        apply_to_project_button.disable()
+        select_models_card.collapse()
+        classess_settings_card.collapse()
+        preview_card.collapse()
+        apply_to_project_card.collapse()
         stepper.set_active_step(1)
     else:
         button_download_data.disable()
@@ -152,13 +159,14 @@ def download_data():
                 "inference_type_selection_card",
                 "classess_settings_card",
                 "preview_card",
-                "run_model_card",
+                "apply_to_project_card",
             ],
             enabled=False,
         )
 
         input_project_thmb.set(info=g.project_info)
         input_project_thmb.show()
+        classes_mapping.set(g.project_meta.obj_classes)
         button_download_data.text = "Change data"
         toggle_cards(["inference_type_selection_card"], enabled=True)
         if select_florence_model_session.get_selected_id() is not None:
@@ -166,7 +174,7 @@ def download_data():
         if select_sam2_model_session.get_selected_id() is not None:
             sam2_set_model_type_button.enable()
         stepper.set_active_step(2)
-        inference_type_selection_card.uncollapse()
+        select_models_card.uncollapse()
         button_download_data.enable()
         progress_bar_download_data.hide()
         try:
@@ -211,9 +219,9 @@ select_sam2_model_session = SelectAppSession(
 def get_florence_active_task():
     apps = g.api.app.get_list(
         team_id=g.team.id,
-        session_tags=["deployed_nn"],
+        session_tags=["deployed_florence_2"],
         only_running=True,
-        # filter=[{"field": "name", "operator": "=", "value": "Serve Florence 2"}],
+        filter=[{"field": "name", "operator": "=", "value": "Serve Florence 2"}],
     )
     for task in apps[0].tasks:
         if task.get("status") == "started":
@@ -277,12 +285,15 @@ def set_florence_model_type():
         select_florence_model_session.enable()
         florence_set_model_type_button.enable()
         florence_set_model_type_button.text = "Connect to Model"
-        toggle_cards(["classess_settings_card", "preview_card", "run_model_card"], enabled=False)
+        toggle_cards(
+            ["classess_settings_card", "preview_card", "apply_to_project_card"], enabled=False
+        )
         set_classess_prompts_button.disable()
+        classes_mapping.disable()
         set_classess_prompts_button.text = "Set settings"
         new_random_images_preview_button.disable()
         get_predictions_preview_button.disable()
-        apply_to_project.disable()
+        apply_to_project_button.disable()
         stepper.set_active_step(2)
     else:
         model_session_id = select_florence_model_session.get_selected_id()
@@ -310,7 +321,8 @@ def set_florence_model_type():
                 set_classess_prompts_button.enable()
                 if sam2_set_model_type_button.text == "Disconnect model":
                     stepper.set_active_step(3)
-                    classes_mapping.set(g.project_meta.obj_classes)
+                    classes_mapping.enable()
+                    # classes_mapping.set(g.project_meta.obj_classes)
                     classess_settings_card.uncollapse()
             except Exception as e:
                 sly.app.show_dialog(
@@ -325,13 +337,14 @@ def set_florence_model_type():
                 select_florence_model_session.enable()
                 florence_model_info.hide()
                 toggle_cards(
-                    ["classess_settings_card", "preview_card", "run_model_card"],
+                    ["classess_settings_card", "preview_card", "apply_to_project_card"],
                     enabled=False,
                 )
                 set_classess_prompts_button.disable()
+                classes_mapping.disable()
                 new_random_images_preview_button.disable()
                 get_predictions_preview_button.disable()
-                apply_to_project.disable()
+                apply_to_project_button.disable()
                 stepper.set_active_step(2)
 
 
@@ -346,12 +359,15 @@ def set_sam2_model_type():
         select_sam2_model_session.enable()
         sam2_set_model_type_button.enable()
         sam2_set_model_type_button.text = "Connect to model"
-        toggle_cards(["classess_settings_card", "preview_card", "run_model_card"], enabled=False)
+        toggle_cards(
+            ["classess_settings_card", "preview_card", "apply_to_project_card"], enabled=False
+        )
         set_classess_prompts_button.disable()
         set_classess_prompts_button.text = "Set settings"
+        classes_mapping.disable()
         new_random_images_preview_button.disable()
         get_predictions_preview_button.disable()
-        apply_to_project.disable()
+        apply_to_project_button.disable()
         stepper.set_active_step(2)
     else:
         model_session_id = select_sam2_model_session.get_selected_id()
@@ -379,7 +395,8 @@ def set_sam2_model_type():
                 set_classess_prompts_button.enable()
                 if florence_set_model_type_button.text == "Disconnect model":
                     stepper.set_active_step(3)
-                    classes_mapping.set(g.project_meta.obj_classes)
+                    classes_mapping.enable()
+                    # classes_mapping.set(g.project_meta.obj_classes)
                     classess_settings_card.uncollapse()
             except Exception as e:
                 sly.app.show_dialog(
@@ -394,13 +411,14 @@ def set_sam2_model_type():
                 select_sam2_model_session.enable()
                 sam2_model_info.hide()
                 toggle_cards(
-                    ["classess_settings_card", "preview_card", "run_model_card"],
+                    ["classess_settings_card", "preview_card", "apply_to_project_card"],
                     enabled=False,
                 )
                 set_classess_prompts_button.disable()
+                classes_mapping.disable()
                 new_random_images_preview_button.disable()
                 get_predictions_preview_button.disable()
-                apply_to_project.disable()
+                apply_to_project_button.disable()
                 stepper.set_active_step(2)
 
 
@@ -423,7 +441,7 @@ inference_type_sam2_container = Container(
     ]
 )
 
-inference_type_selection_card = Card(
+select_models_card = Card(
     title="Connect to Models",
     description="Select served models from list below",
     content=Container(
@@ -431,7 +449,7 @@ inference_type_selection_card = Card(
     ),
     collapsable=True,
 )
-inference_type_selection_card.collapse()
+select_models_card.collapse()
 
 
 # ----------------------------------- Model Input Configuration ---------------------------------- #
@@ -444,13 +462,15 @@ def set_model_input():
     if classess_settings_card.is_disabled() is True:
         set_classess_prompts_button.text = "Set settings"
         toggle_cards(["classess_settings_card"], enabled=True)
-        toggle_cards(["preview_card", "run_model_card"], enabled=False)
+        toggle_cards(["preview_card", "apply_to_project_card"], enabled=False)
         new_random_images_preview_button.disable()
         get_predictions_preview_button.disable()
-        apply_to_project.disable()
+        apply_to_project_button.disable()
         classes_mapping.enable()
         stepper.set_active_step(3)
         classes_mapping.set(g.project_meta.obj_classes)
+        apply_to_project_card.collapse()
+        preview_card.collapse()
         classess_settings_card.uncollapse()
     else:
         g.classes_mapping = classes_mapping.get_mapping()
@@ -458,14 +478,15 @@ def set_model_input():
         classes_mapping.disable()
         update_images_preview()
         toggle_cards(["classess_settings_card"], enabled=False)
-        toggle_cards(["preview_card", "run_model_card"], enabled=True)
+        toggle_cards(["preview_card", "apply_to_project_card"], enabled=True)
         new_random_images_preview_button.enable()
         get_predictions_preview_button.enable()
-        apply_to_project.enable()
+        apply_to_project_button.enable()
         stepper.set_active_step(5)
+        apply_to_project_card.uncollapse()
 
 
-classes_mapping = ClassesMappingWithPrompts(g.project_meta.obj_classes)
+classes_mapping = ClassesMappingWithPrompts([])
 classess_selection_tabs = Container(
     [
         Grid(
@@ -667,10 +688,15 @@ preview_card.collapse()
 
 
 destination_project = DestinationProject(g.workspace.id, project_type=sly.ProjectType.IMAGES)
-apply_to_project = Button("Apply to Project")
+destination_project_item = Collapse.Item(
+    "destination_project", "Destination Project", destination_project
+)
+destination_project_collapse = Collapse([destination_project_item])
+destination_project_collapse.set_active_panel("destination_project")
+apply_to_project_button = Button("Apply to Project")
 
 
-@apply_to_project.click
+@apply_to_project_button.click
 def run_model():
     toggle_cards(
         [
@@ -678,7 +704,7 @@ def run_model():
             "inference_type_selection_card",
             "classess_settings_card",
             "preview_card",
-            "run_model_card",
+            "apply_to_project_card",
         ],
         enabled=False,
     )
@@ -692,6 +718,7 @@ def run_model():
     new_random_images_preview_button.disable()
     get_predictions_preview_button.disable()
     output_project_thmb.hide()
+    destination_project_collapse.set_active_panel([])
     global IS_IMAGE_PROMPT, F_MODEL_DATA, S_MODEL_DATA
 
     def get_inference_settings():
@@ -700,7 +727,7 @@ def run_model():
         return inference_settings
 
     try:
-        output_project_info = run(
+        output_project_info = apply_to_project_event(
             destination_project, get_inference_settings(), F_MODEL_DATA, S_MODEL_DATA
         )
 
@@ -710,22 +737,30 @@ def run_model():
     except Exception as e:
         sly.logger.error(f"Something went wrong. Error: {e}")
     finally:
-        toggle_cards(["run_model_card"], enabled=True)
+        toggle_cards(["apply_to_project_card"], enabled=True)
         button_download_data.enable()
         set_classess_prompts_button.enable()
         florence_set_model_type_button.enable()
         sam2_set_model_type_button.enable()
-        apply_to_project.enable()
+        apply_to_project_button.enable()
 
 
 output_project_thmb = ProjectThumbnail()
 output_project_thmb.hide()
-run_model_card = Card(
-    title="Apply Models",
-    content=Container([destination_project, apply_to_project, output_project_thmb]),
+apply_to_project_card = Card(
+    title="Apply to Project",
+    content=Container(
+        [
+            destination_project_collapse,
+            project_progress_bar,
+            images_update_bar,
+            apply_to_project_button,
+            output_project_thmb,
+        ]
+    ),
     collapsable=True,
 )
-run_model_card.collapse()
+apply_to_project_card.collapse()
 
 
 def toggle_cards(cards: List[str], enabled: bool = False):
@@ -744,7 +779,7 @@ def toggle_cards(cards: List[str], enabled: bool = False):
     card_mappings = {
         "data_card": (data_card, [dataset_selector]),
         "inference_type_selection_card": (
-            inference_type_selection_card,
+            select_models_card,
             [select_florence_model_session, select_sam2_model_session],
         ),
         "classess_settings_card": (
@@ -763,7 +798,7 @@ def toggle_cards(cards: List[str], enabled: bool = False):
             preview_card,
             [grid_gallery, new_random_images_preview_button, get_predictions_preview_button],
         ),
-        "run_model_card": (run_model_card, [destination_project]),
+        "apply_to_project_card": (apply_to_project_card, [destination_project]),
     }
 
     for card in cards:
@@ -777,22 +812,22 @@ toggle_cards(
         "inference_type_selection_card",
         "classess_settings_card",
         "preview_card",
-        "run_model_card",
+        "apply_to_project_card",
     ],
     enabled=False,
 )
 florence_set_model_type_button.disable()
 sam2_set_model_type_button.disable()
 set_classess_prompts_button.disable()
-apply_to_project.disable()
+apply_to_project_button.disable()
 
 stepper = Stepper(
     widgets=[
         data_card,
-        inference_type_selection_card,
+        select_models_card,
         classess_settings_card,
         preview_card,
-        run_model_card,
+        apply_to_project_card,
     ]
 )
 app = sly.Application(layout=stepper)

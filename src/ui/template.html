@@ -40,7 +40,7 @@
 					maxlength="3000"
 					autosize="{minRows: 1, maxRows: 2}"
 					style="width: 500px"
-					:disabled="!state.{{{widget.widget_id}}}.classes_values[idx].selected"
+					:disabled="!state.{{{widget.widget_id}}}.classes_values[idx].selected || data.{{{widget.widget_id}}}.disabled"
 					@change="
                         state.{{{widget.widget_id}}}.classes_values[idx].default = $event == obj_class.default_value;
                         state.{{{widget.widget_id}}}.classes_values[idx].ignore = $event == '';"

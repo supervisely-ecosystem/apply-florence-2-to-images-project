@@ -25,30 +25,3 @@ class ClassesMappingWithPrompts(ClassesMapping):
         html = self._wrap_disable_html(self.widget_id, html)
         html = self._wrap_hide_html(self.widget_id, html)
         return markupsafe.Markup(html)
-
-    def add_prompt(self, prompt):
-        self._prompts.update({prompt["class_name"]: prompt["prompt"]})
-
-    def get_prompts(self):
-        return self._prompts
-
-    def clear_prompts(self):
-        self._prompts = {}
-
-    def get_selected_classes(self):
-        return [obj_class for obj_class in self._classes if obj_class.selected]
-
-    def get_unselected_classes(self):
-        return [obj_class for obj_class in self._classes if not obj_class.selected]
-
-    def get_selected_classes_names(self):
-        return [obj_class.name for obj_class in self.get_selected_classes()]
-
-    def get_unselected_classes_names(self):
-        return [obj_class.name for obj_class in self.get_unselected_classes()]
-
-    def get_selected_classes_names_with_prompts(self):
-        return [
-            f"{obj_class.name} ({', '.join(self.get_prompts())})"
-            for obj_class in self.get_selected_classes()
-        ]
