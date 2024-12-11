@@ -458,7 +458,6 @@ def set_model_input():
         classes_mapping.set(g.project_meta.obj_classes)
         apply_to_project_card.collapse()
         preview_card.collapse()
-        project_progress_bar.hide()
         output_project_thmb.hide()
         classess_settings_card.uncollapse()
     else:

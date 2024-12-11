@@ -7,7 +7,7 @@ from supervisely.annotation.label import LabelJsonFields
 from supervisely.annotation.annotation import AnnotationJsonFields
 
 
-project_progress_bar = Progress(hide_on_finish=False)
+project_progress_bar = Progress(hide_on_finish=True)
 images_update_bar = Progress(hide_on_finish=True)
 
 
@@ -92,7 +92,7 @@ def apply_to_project_event(
     datasets_list = [g.api.dataset.get_info_by_id(ds_id) for ds_id in g.DATASET_IDS]
     total_items_cnt = sum([ds.items_count for ds in datasets_list])
     with project_progress_bar(
-        message="Applying models to project...", total=total_items_cnt
+        message="Uploading new items to project...", total=total_items_cnt
     ) as pbar:
         for dataset in datasets_list:
             images_infos = g.api.image.get_list(dataset.id)
