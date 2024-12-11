@@ -10,9 +10,7 @@ from supervisely.app.widgets import (
     Card,
     Container,
     Stepper,
-    ImageRegionSelector,
     ProjectThumbnail,
-    Input,
     GridGallery,
     InputNumber,
     Field,
@@ -25,9 +23,9 @@ from supervisely.app.widgets import (
     Flexbox,
     Grid,
     Empty,
-    Table,
     Text,
     Collapse,
+    Switch,
 )
 
 import src.globals as g
@@ -72,10 +70,6 @@ dataset_selector = SelectDataset(
 )
 
 
-# def func_caller(value):
-#    on_dataset_selected(value)
-
-
 def on_dataset_selected(new_dataset_ids=None):
     global IMAGES_INFO_LIST, CURRENT_REF_IMAGE_INDEX, REF_IMAGE_HISTORY
 
@@ -92,18 +86,14 @@ def on_dataset_selected(new_dataset_ids=None):
         dataset_selector.enable()
         g.DATASET_IDS = new_dataset_ids
         IMAGES_INFO_LIST = get_images_infos_for_preview()
-        # update_images_preview()
         CURRENT_REF_IMAGE_INDEX = 0
         REF_IMAGE_HISTORY = [CURRENT_REF_IMAGE_INDEX]
-        # image_region_selector.image_update(IMAGES_INFO_LIST[CURRENT_REF_IMAGE_INDEX])
     else:
         if set(g.DATASET_IDS) != set(new_dataset_ids):
             g.DATASET_IDS = new_dataset_ids
             IMAGES_INFO_LIST = get_images_infos_for_preview()
-            # update_images_preview()
             CURRENT_REF_IMAGE_INDEX = 0
             REF_IMAGE_HISTORY = [CURRENT_REF_IMAGE_INDEX]
-            # image_region_selector.image_update(IMAGES_INFO_LIST[CURRENT_REF_IMAGE_INDEX])
 
     sly.logger.info(
         f"Team: {g.team.id} \t Project: {g.project_info.id} \t Datasets: {g.DATASET_IDS}"
@@ -301,7 +291,6 @@ def set_florence_model_type():
             try:
                 florence_set_model_type_button.disable()
                 select_florence_model_session.disable()
-                # get model meta
                 model_meta_json = g.api.task.send_request(
                     model_session_id,
                     "get_output_classes_and_tags",
@@ -322,7 +311,6 @@ def set_florence_model_type():
                 if sam2_set_model_type_button.text == "Disconnect model":
                     stepper.set_active_step(3)
                     classes_mapping.enable()
-                    # classes_mapping.set(g.project_meta.obj_classes)
                     classess_settings_card.uncollapse()
             except Exception as e:
                 sly.app.show_dialog(
@@ -396,7 +384,6 @@ def set_sam2_model_type():
                 if florence_set_model_type_button.text == "Disconnect model":
                     stepper.set_active_step(3)
                     classes_mapping.enable()
-                    # classes_mapping.set(g.project_meta.obj_classes)
                     classess_settings_card.uncollapse()
             except Exception as e:
                 sly.app.show_dialog(
@@ -471,6 +458,8 @@ def set_model_input():
         classes_mapping.set(g.project_meta.obj_classes)
         apply_to_project_card.collapse()
         preview_card.collapse()
+        project_progress_bar.hide()
+        output_project_thmb.hide()
         classess_settings_card.uncollapse()
     else:
         g.classes_mapping = classes_mapping.get_mapping()
@@ -579,7 +568,6 @@ def update_predictions_preview():
         for i, image_info in enumerate(PREVIEW_IMAGES_INFOS):
             annotations_map[image_info.id] = {"annotations": [], "image_info": image_info}
             image_info: sly.ImageInfo
-            # text_queries = text_prompt_textarea.get_value().split(";")
             inference_settings = {"mapping": mapping, "mode": "text_prompt"}
             f_ann = g.api.task.send_request(
                 F_MODEL_DATA["session_id"],
@@ -632,11 +620,6 @@ def update_predictions_preview():
 
 
 preview_images_number_input = InputNumber(value=4, min=1, max=60, step=1)
-# preview_images_number_field = Field(
-#     title="Number of images in preview",
-#     description="Select how many images should be in preview gallery",
-#     content=preview_images_number_input,
-# )
 preview_images_number_field = Field(
     title="Number of images in preview",
     description="Select how many images should be in preview gallery",
@@ -686,10 +669,17 @@ preview_card.collapse()
 
 # -------------------------------------- Applying Model Card ------------------------------------- #
 
-
+save_bbox_switch = Switch(on_text="Yes", off_text="No")
+save_bbox_field = Field(
+    save_bbox_switch,
+    title="Florence 2 Bounding Boxes",
+    description="Save bounding boxes annotations in output project",
+)
 destination_project = DestinationProject(g.workspace.id, project_type=sly.ProjectType.IMAGES)
 destination_project_item = Collapse.Item(
-    "destination_project", "Destination Project", destination_project
+    "destination_project",
+    "Destination Project Settings",
+    Container([destination_project, save_bbox_field]),
 )
 destination_project_collapse = Collapse([destination_project_item])
 destination_project_collapse.set_active_panel("destination_project")
@@ -708,11 +698,9 @@ def run_model():
         ],
         enabled=False,
     )
+    g.save_bboxes = save_bbox_switch.is_on()
     button_download_data.disable()
     set_classess_prompts_button.disable()
-    # next_image_button.disable()
-    # random_image_button.disable()
-    # previous_image_button.disable()
     florence_set_model_type_button.disable()
     sam2_set_model_type_button.disable()
     new_random_images_preview_button.disable()
@@ -784,15 +772,7 @@ def toggle_cards(cards: List[str], enabled: bool = False):
         ),
         "classess_settings_card": (
             classess_settings_card,
-            [
-                # text_prompt_textarea,
-                # class_input,
-                # image_region_selector,
-                # random_image_button,
-                classess_selection_tabs,
-                # previous_image_button if CURRENT_REF_IMAGE_INDEX != REF_IMAGE_HISTORY[0] else None,
-                # next_image_button if CURRENT_REF_IMAGE_INDEX < len(IMAGES_INFO_LIST) - 1 else None,
-            ],
+            [classess_selection_tabs],
         ),
         "preview_card": (
             preview_card,

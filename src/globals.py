@@ -26,4 +26,4 @@ COLUMNS_COUNT = 4
 PREVIEW_IMAGES_COUNT = 18
 classes_mapping = {}
 
-save_bboxes = True
+save_bboxes = False

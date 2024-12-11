@@ -162,7 +162,7 @@ def apply_to_project_event(
 
                     result_ann = image_ann.add_labels(s_image_ann.labels)
                     if f_image_ann is not None:
-                        result_ann = result_ann.add_labels(s_image_ann.labels)
+                        result_ann = result_ann.add_labels(f_image_ann.labels)
                     result_anns.append(result_ann)
                     if new_anns_objects_added > 0:
                         sly.logger.debug(
