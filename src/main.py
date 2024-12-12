@@ -157,6 +157,7 @@ def download_data():
         input_project_thmb.set(info=g.project_info)
         input_project_thmb.show()
         classes_mapping.set(g.project_meta.obj_classes)
+        classes_mapping.select_all()
         button_download_data.text = "Change data"
         toggle_cards(["inference_type_selection_card"], enabled=True)
         if select_florence_model_session.get_selected_id() is not None:
@@ -456,6 +457,7 @@ def set_model_input():
         classes_mapping.enable()
         stepper.set_active_step(3)
         classes_mapping.set(g.project_meta.obj_classes)
+        classes_mapping.select_all()
         apply_to_project_card.collapse()
         preview_card.collapse()
         output_project_thmb.hide()
