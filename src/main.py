@@ -561,7 +561,7 @@ get_predictions_preview_button = Button(
 def update_predictions_preview():
 
     new_random_images_preview_button.disable()
-
+    temp_meta = g.project_meta.clone()
     annotations_map = {}
     mapping = {key: value["value"] for key, value in g.classes_mapping.items()}
     with preview_progress(
@@ -577,7 +577,9 @@ def update_predictions_preview():
                 data={"image_id": image_info.id, "settings": inference_settings},
                 timeout=500,
             )
-            f_annotation = inference_json_anno_preprocessing(f_ann, g.project_meta, suffix="bbox")
+            f_annotation, temp_meta = inference_json_anno_preprocessing(
+                f_ann, temp_meta, suffix="bbox"
+            )
             s_labels = []
             for label in f_annotation.labels:
                 class_name = label.obj_class.name.rstrip("_bbox")
@@ -598,7 +600,9 @@ def update_predictions_preview():
                 )
                 s_labels.extend(s_ann["annotation"]["objects"])
             s_ann["annotation"]["objects"] = s_labels
-            s_annotation = inference_json_anno_preprocessing(s_ann, g.project_meta, suffix="mask")
+            s_annotation, temp_meta = inference_json_anno_preprocessing(
+                s_ann, temp_meta, suffix="mask"
+            )
             merged_annotation = f_annotation.add_labels(s_annotation.labels)
             annotations_map[image_info.id]["annotations"].append(merged_annotation)
             sly.logger.info(
@@ -608,10 +612,14 @@ def update_predictions_preview():
             pbar.update(1)
 
     grid_gallery.clean_up()
-    for i, (id, info) in enumerate(annotations_map.items()):
+    for i, (_, info) in enumerate(annotations_map.items()):
         image_info = info["image_info"]
         annotations = info["annotations"]
         for annotation in annotations:
+            annotation: sly.Annotation
+            for sly_id, label in enumerate(annotation.labels):
+                label: sly.Label
+                label.geometry.sly_id = sly_id
             grid_gallery.append(
                 image_url=image_info.preview_url,
                 annotation=annotation,
