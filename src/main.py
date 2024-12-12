@@ -251,7 +251,7 @@ florence_model_set_done = DoneLabel("Model successfully connected.")
 florence_model_set_done.hide()
 florence_set_model_type_button = Button(text="Select model")
 select_florence_model_text = Text(
-    f'Select <a href="{g.api.server_address}/ecosystem/apps/serve-florence-2">Florence 2</a> model:'
+    f'Select <a href="{g.api.server_address}/ecosystem/apps/serve-florence-2" target="_self">Florence 2</a> model:'
 )
 
 
@@ -260,7 +260,7 @@ sam2_model_set_done = DoneLabel("Model successfully connected.")
 sam2_model_set_done.hide()
 sam2_set_model_type_button = Button(text="Select model")
 select_sam2_model_text = Text(
-    f'Select <a href="{g.api.server_address}/ecosystem/apps/serve-segment-anything-2">Segment Anything 2.1</a> model:'
+    f'Select <a href="{g.api.server_address}/ecosystem/apps/serve-segment-anything-2" target="_self">Segment Anything 2.1</a> model:'
 )
 
 
@@ -471,6 +471,7 @@ def set_model_input():
         get_predictions_preview_button.enable()
         apply_to_project_button.enable()
         stepper.set_active_step(5)
+        preview_card.uncollapse()
         apply_to_project_card.uncollapse()
 
 
@@ -486,7 +487,7 @@ classess_selection_tabs = Container(
 
 
 classess_settings_card = Card(
-    title="Classess and Prompts",
+    title="Classess and Prompts for Predictions",
     description="Selected classes and configure text prompts",
     content=Container(
         [
