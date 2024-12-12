@@ -252,7 +252,7 @@ florence_model_set_done = DoneLabel("Model successfully connected.")
 florence_model_set_done.hide()
 florence_set_model_type_button = Button(text="Select model")
 select_florence_model_text = Text(
-    f'Select <a href="{g.api.server_address}/ecosystem/apps/serve-florence-2" target="_self">Florence 2</a> model:'
+    f'Select <a href="{g.api.server_address}/ecosystem/apps/serve-florence-2" target="_blank">Florence 2</a> model:'
 )
 
 
@@ -261,7 +261,7 @@ sam2_model_set_done = DoneLabel("Model successfully connected.")
 sam2_model_set_done.hide()
 sam2_set_model_type_button = Button(text="Select model")
 select_sam2_model_text = Text(
-    f'Select <a href="{g.api.server_address}/ecosystem/apps/serve-segment-anything-2" target="_self">Segment Anything 2.1</a> model:'
+    f'Select <a href="{g.api.server_address}/ecosystem/apps/serve-segment-anything-2" target="_blank">Segment Anything 2.1</a> model:'
 )
 
 
