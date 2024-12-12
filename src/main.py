@@ -739,8 +739,13 @@ def run_model():
     global IS_IMAGE_PROMPT, F_MODEL_DATA, S_MODEL_DATA
 
     def get_inference_settings():
-        mapping = {key: value["value"] for key, value in g.classes_mapping.items()}
-        inference_settings = {"mapping": mapping, "mode": "text_prompt"}
+        if inference_prompt_types.get_active_tab() == common_tab_name:
+            mapping = None
+            prompt_text = prompt_common_input.get_value()
+        elif inference_prompt_types.get_active_tab() == classes_mapping_tab_name:
+            mapping = {key: value["value"] for key, value in g.classes_mapping.items()}
+            prompt_text = None
+        inference_settings = {"mapping": mapping, "mode": "text_prompt", "text": prompt_text}
         return inference_settings
 
     try:
