@@ -7,7 +7,7 @@ Integration of the Microsoft Florence-2 model for prompt-based object detection.
 
 <p align="center">
   <a href="#Overview">Overview</a> •
-  <a href="#How-to-Run">How to Run</a>
+  <a href="#How-to-Run">How to Run</a> •
   <a href="#Examples">Examples</a>
 </p>
 
