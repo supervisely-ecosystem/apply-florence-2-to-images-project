@@ -1,8 +1,15 @@
 import random
 from typing import List
 
-from src.utils import apply_to_project_event, project_progress_bar, images_update_bar
+from src.utils import (
+    inference_json_anno_preprocessing,
+    apply_to_project_event,
+    project_progress_bar,
+    images_update_bar,
+)
+
 from src.ui.classes_mapping_prompts import ClassesMappingWithPrompts
+import src.globals as g
 
 import supervisely as sly
 from supervisely.app.widgets import (
@@ -30,8 +37,6 @@ from supervisely.app.widgets import (
     Input,
 )
 
-import src.globals as g
-from src.model import inference_json_anno_preprocessing
 
 IS_IMAGE_PROMPT = True
 PREVIEW_IMAGES_INFOS = []
@@ -593,7 +598,7 @@ def update_images_preview():
 def get_and_update_predictions_preview():
 
     new_random_images_preview_button.disable()
-    if inference_prompt_types.get_active_tab() == common_tab_name:
+    if g.force_common_tab or inference_prompt_types.get_active_tab() == common_tab_name:
         temp_meta = sly.ProjectMeta()
         mapping = None
         prompt_text = prompt_common_input.get_value()
@@ -739,7 +744,7 @@ def run_model():
     global IS_IMAGE_PROMPT, F_MODEL_DATA, S_MODEL_DATA
 
     def get_inference_settings():
-        if inference_prompt_types.get_active_tab() == common_tab_name:
+        if g.force_common_tab or inference_prompt_types.get_active_tab() == common_tab_name:
             mapping = None
             prompt_text = prompt_common_input.get_value()
         elif inference_prompt_types.get_active_tab() == classes_mapping_tab_name:

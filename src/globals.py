@@ -23,7 +23,6 @@ team = api.team.get_info_by_id(workspace.team_id)
 
 DATASET_IDS = [dataset_id] if dataset_id else []
 COLUMNS_COUNT = 4
-PREVIEW_IMAGES_COUNT = 18
 classes_mapping = {}
-
 save_bboxes = False
+force_common_tab = True  # TODO remove or set to False after functionality will be implemented
