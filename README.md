@@ -1,5 +1,5 @@
 <div align="center" markdown>
-<img src="https://github.com/user-attachments/assets/32557828-4636-46bd-b6ef-112b2e38abb2" />
+<img src="https://github.com/user-attachments/assets/42f08187-a610-49a9-9377-5f49853049e0" />
 
 # Apply Florence-2 to Images Project
 
@@ -46,7 +46,7 @@ Application key points:
 
 3. Select your served models and click `Select model` button if they have not been automatically selected.
 
-<img src="https://github.com/user-attachments/assets/985350e0-22e6-431e-82c9-2faa91d9a700" />
+<img src="https://github.com/user-attachments/assets/ed22476d-831b-415e-b7f8-6aa5cb83d713" />
 
 4. Write down the **Text Prompt** that will help Florence-2 detect objects you need.
 
