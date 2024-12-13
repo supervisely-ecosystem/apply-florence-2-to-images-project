@@ -8,6 +8,7 @@ Integration of the Microsoft Florence-2 model for prompt-based object detection.
 <p align="center">
   <a href="#Overview">Overview</a> •
   <a href="#How-to-Run">How to Run</a>
+  <a href="#Examples">Examples</a>
 </p>
 
 [![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/apply-florence-2-to-images-project)
@@ -59,3 +60,7 @@ Application key points:
 6. Select the way you want to save the project and click `Apply to Project`.
 
 <img src="https://github.com/user-attachments/assets/79c67c97-bf50-4707-a7d1-ce1602a10302" />
+
+## Examples
+
+<img src="https://github.com/user-attachments/assets/6d5d9100-df6f-4908-b524-207bc993c842" />
