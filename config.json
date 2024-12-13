@@ -22,9 +22,9 @@
   "task_location": "workspace_tasks",
   "need_gpu": false,
   "community_agent": true,
-  "icon": "https://user-images.githubusercontent.com/...",
+  "icon": "https://github.com/user-attachments/assets/0f528975-4f55-4033-b823-35ff09d097a8",
   "icon_cover": true,
-  "poster": "https://user-images.githubusercontent.com/...",
+  "poster": "https://github.com/user-attachments/assets/32557828-4636-46bd-b6ef-112b2e38abb2",
   "release": {
     "version": "v1.0.0",
     "name": "init"
