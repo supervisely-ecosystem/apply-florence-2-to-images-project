@@ -28,9 +28,9 @@ Application key points:
 - Select project or dataset to label
 - Serve models by [Serve Florence-2](https://ecosystem.supervisely.com/apps/serve-florence-2) and [Serve Segment Anything 2.1](https://ecosystem.supervisely.com/apps/serve-segment-anything-2) apps. The `Florence-2-large` and `SAM 2.1 Hiera small` models will be deployed automatically. You can change it if needed.
 
-  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/serve-florence-2" src="https://user-images.githubusercontent.com/placeholder" height="70px" margin-bottom="20px"/>
+  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/serve-florence-2" src="https://github.com/user-attachments/assets/32819dd4-4f2e-44df-becc-b7c3844dfaf9" height="70px" margin-bottom="20px"/>
 
-  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/serve-segment-anything-2" src="https://user-images.githubusercontent.com/placeholder" height="70px" margin-bottom="20px"/>
+  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/serve-segment-anything-2" src="https://github.com/user-attachments/assets/e68ec9db-2e94-45a2-849d-8d9c26859a05" height="70px" margin-bottom="20px"/>
 
 - If models were deployed before the application was launched, they will be connected automatically.
 - Set up model input data as text-prompt. If you left it empty - model will apply `Detailed Caption` task for every image to predict all known objects.
