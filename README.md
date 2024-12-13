@@ -63,4 +63,6 @@ Application key points:
 
 ## Examples
 
+`Text Prompt:` The image shows a room with tables and chairs.
+
 <img src="https://github.com/user-attachments/assets/6d5d9100-df6f-4908-b524-207bc993c842" />
