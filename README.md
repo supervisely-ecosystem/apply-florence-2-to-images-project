@@ -1,9 +1,9 @@
 <div align="center" markdown>
-<img src="https://user-images.githubusercontent.com/poster_pacehloder" />
+<img src="https://github.com/user-attachments/assets/32557828-4636-46bd-b6ef-112b2e38abb2" />
 
-# Apply Florence 2 to Images Project
+# Apply Florence-2 to Images Project
 
-Integration of the Microsoft Florence 2 model for prompt-based object detection
+Integration of the Microsoft Florence-2 model for prompt-based object detection.
 
 <p align="center">
   <a href="#Overview">Overview</a> •
@@ -20,12 +20,12 @@ Integration of the Microsoft Florence 2 model for prompt-based object detection
 
 ## Overview
 
-Application allows you to label project images using the Florence 2 detection model with bounding boxes and utilizes the Segment Anything 2.1 model to generate object masks based on the bounding box annotations.
+Application allows you to label project images using the Florence-2 detection model with bounding boxes and utilizes the Segment Anything 2.1 model to generate object masks based on the bounding box annotations.
 
 Application key points:
 
 - Select project or dataset to label
-- Serve models by [Serve Florence 2](https://ecosystem.supervisely.com/apps/serve-florence-2) and [Serve Segment Anything 2.1](https://ecosystem.supervisely.com/apps/serve-segment-anything-2) apps. The `Florence-2-large` and `SAM 2.1 Hiera small` models will be deployed automatically. You can change it if needed.
+- Serve models by [Serve Florence-2](https://ecosystem.supervisely.com/apps/serve-florence-2) and [Serve Segment Anything 2.1](https://ecosystem.supervisely.com/apps/serve-segment-anything-2) apps. The `Florence-2-large` and `SAM 2.1 Hiera small` models will be deployed automatically. You can change it if needed.
 
   <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/serve-florence-2" src="https://user-images.githubusercontent.com/placeholder" height="70px" margin-bottom="20px"/>
 
@@ -38,24 +38,24 @@ Application key points:
 
 ## How to Run
 
-1. Start the application from Ecosystem or context menu of an Images Project
+1. Start the application from Ecosystem or context menu of an Images Project.
 
-2. Choose your input project / dataset
+2. Choose your input project / dataset.
 
-<img src="https://user-images.githubusercontent.com/placeholder" />
+<img src="https://github.com/user-attachments/assets/7245ce39-5935-4cba-a1fb-a1cf1640ffbf" />
 
 3. Select your served models and click `Select model` button if they have not been automatically selected.
 
-<img src="https://user-images.githubusercontent.com/placeholder" />
+<img src="https://github.com/user-attachments/assets/985350e0-22e6-431e-82c9-2faa91d9a700" />
 
-4. Write down the **Text Prompt** that will help Florence 2 detect objects you need
+4. Write down the **Text Prompt** that will help Florence-2 detect objects you need.
 
-<img src="https://user-images.githubusercontent.com/placeholder" />
+<img src="https://github.com/user-attachments/assets/f61070cb-5538-44d6-b00d-cbf56c01e416" />
 
-5. View predictions preview by clicking according buttons
+5. View predictions preview by clicking according buttons.
 
-<img src="https://user-images.githubusercontent.com/placeholder" />
+<img src="https://github.com/user-attachments/assets/68f08021-7ef8-45bd-b4fe-de8e996cb1a2" />
 
-6. Select the way you want to save the project and click `Apply to Project`
+6. Select the way you want to save the project and click `Apply to Project`.
 
-<img src="https://user-images.githubusercontent.com/placeholder" />
+<img src="https://github.com/user-attachments/assets/79c67c97-bf50-4707-a7d1-ce1602a10302" />
