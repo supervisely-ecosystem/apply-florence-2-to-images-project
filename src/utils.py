@@ -209,5 +209,6 @@ def apply_to_project_event(
             g.api.annotation.upload_anns(img_ids, result_anns)
 
             pbar.update(len(img_ids))
-
+    g.api.app.workflow.add_input_project(g.project_info.id)
+    g.api.app.workflow.add_output_project(output_project_id)
     return g.api.project.get_info_by_id(output_project_id)

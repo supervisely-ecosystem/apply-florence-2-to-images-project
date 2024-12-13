@@ -196,7 +196,7 @@ def download_data():
             select_florence_model_session.set_session_id(get_florence_active_task())
             set_florence_model_type()
         except Exception:
-            sly.logger.info("No Florence 2 model sessions found to select automatically.")
+            sly.logger.info("No Florence-2 model sessions found to select automatically.")
         try:
             select_sam2_model_session.set_session_id(get_sam2_active_task())
             set_sam2_model_type()
@@ -217,7 +217,7 @@ florence_model_set_done = DoneLabel("Model successfully connected.")
 florence_model_set_done.hide()
 florence_set_model_type_button = Button(text="Select model")
 select_florence_model_text = Text(
-    f'Select <a href="{g.api.server_address}/ecosystem/apps/serve-florence-2" target="_blank">Florence 2</a> model:'
+    f'Select <a href="{g.api.server_address}/ecosystem/apps/serve-florence-2" target="_blank">Florence-2</a> model:'
 )
 
 
@@ -262,9 +262,9 @@ select_models_card.collapse()
 def get_florence_active_task():
     apps = g.api.app.get_list(
         team_id=g.team.id,
-        # session_tags=["deployed_florence_2"],
+        session_tags=["deployed_florence_2"],
         only_running=True,
-        filter=[{"field": "name", "operator": "=", "value": "Serve Florence 2"}],
+        filter=[{"field": "name", "operator": "=", "value": "Serve Florence-2"}],
     )
     for task in apps[0].tasks:
         if task.get("status") == "started":
@@ -689,7 +689,7 @@ def preview_images_number_changed(preview_images_number):
 save_bbox_switch = Switch(on_text="Yes", off_text="No")
 save_bbox_field = Field(
     save_bbox_switch,
-    title="Florence 2 Bounding Boxes",
+    title="Florence-2 Bounding Boxes",
     description="Save bounding boxes annotations in output project",
 )
 destination_project = DestinationProject(g.workspace.id, project_type=sly.ProjectType.IMAGES)
