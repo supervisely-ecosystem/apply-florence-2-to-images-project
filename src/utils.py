@@ -26,6 +26,8 @@ def inference_json_anno_preprocessing(
         if temp_meta.get_obj_class(class_) is None:
             class_color = None
             orig_class = temp_meta.get_obj_class(class_.rstrip(f"_{suffix}"))
+            if orig_class is None and class_.endswith("_mask"):
+                orig_class = temp_meta.get_obj_class(class_[:-4] + "bbox")
             if orig_class is not None:
                 class_color = orig_class.color
             new_obj_class = sly.ObjClass(class_, class_type, class_color)
@@ -49,9 +51,9 @@ def apply_to_project_event(
     ) -> sly.ProjectMeta:
         project_meta_needs_update = False
         for label in ann[ApiField.ANNOTATION][AnnotationJsonFields.LABELS]:
-            new_obj_class_name: str = label[LabelJsonFields.OBJ_CLASS_NAME]
-            if output_project_meta.get_obj_class(new_obj_class_name) is None:
-                sly.logger.debug(f"Adding {new_obj_class_name} to the project meta")
+            new_class_: str = label[LabelJsonFields.OBJ_CLASS_NAME]
+            if output_project_meta.get_obj_class(new_class_) is None:
+                sly.logger.debug(f"Adding {new_class_} to the project meta")
                 if suffix == "bbox":
                     geometry_type = sly.Rectangle
                 elif suffix == "mask":
@@ -59,12 +61,12 @@ def apply_to_project_event(
                 else:
                     raise NotImplementedError("Suffix should be either 'bbox' or 'mask'")
                 class_color = None
-                orig_class = output_project_meta.get_obj_class(
-                    new_obj_class_name.rstrip(f"_{suffix}")
-                )
+                orig_class = output_project_meta.get_obj_class(new_class_.rstrip(f"_{suffix}"))
+                if orig_class is None and new_class_.endswith("_mask"):
+                    orig_class = output_project_meta.get_obj_class(new_class_[:-4] + "bbox")
                 if orig_class is not None:
                     class_color = orig_class.color
-                new_obj_class = sly.ObjClass(new_obj_class_name, geometry_type, color=class_color)
+                new_obj_class = sly.ObjClass(new_class_, geometry_type, color=class_color)
                 output_project_meta = output_project_meta.add_obj_class(new_obj_class)
                 project_meta_needs_update = True
 
