@@ -43,6 +43,14 @@ def apply_to_project_event(
     F_MODEL_DATA: dict,
     S_MODEL_DATA: dict,
 ):
+    if F_MODEL_DATA.get("session_id") is None or S_MODEL_DATA.get("session_id") is None:
+        sly.app.show_dialog(
+            "Warning",
+            f"Please connect to both models before applying them to the project",
+            status="warning",
+        )
+        sly.logger.warning("Please connect to both models before applying them to the project")
+        return
 
     def update_proj_meta_classes(
         ann: dict,
