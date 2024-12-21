@@ -595,6 +595,7 @@ def get_and_update_predictions_preview():
             "Please connect to both models before getting predictions preview.",
             status="warning",
         )
+        sly.logger.warning("Please connect to both models before getting predictions preview.")
         return
     new_random_images_preview_button.disable()
     if g.force_common_tab or inference_prompt_types.get_active_tab() == common_tab_name:
@@ -755,7 +756,13 @@ def run_model():
         output_project_info = apply_to_project_event(
             destination_project, get_inference_settings(), F_MODEL_DATA, S_MODEL_DATA
         )
-
+        if output_project_info is None:
+            sly.logger.warning(
+                "Something went wrong during applying models to project."
+                "Project thumbnail will not be shown. "
+                "Check logs for more information."
+            )
+            return
         output_project_thmb.set(output_project_info)
         output_project_thmb.show()
         sly.logger.info("Project was successfully labeled")

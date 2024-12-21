@@ -49,6 +49,7 @@ def apply_to_project_event(
             f"Please run both models before applying them to the project",
             status="warning",
         )
+        sly.logger.warning("Please run both models before applying them to the project")
         return
 
     def update_proj_meta_classes(
