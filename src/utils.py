@@ -49,6 +49,7 @@ def apply_to_project_event(
             f"Please run both models before applying them to the project",
             status="warning",
         )
+        return
 
     def update_proj_meta_classes(
         ann: dict,
