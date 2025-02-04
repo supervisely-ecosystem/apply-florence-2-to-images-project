@@ -1,9 +1,9 @@
 <div align="center" markdown>
 <img src="https://github.com/user-attachments/assets/42f08187-a610-49a9-9377-5f49853049e0" />
 
-# Apply Florence-2 to Images Project
+# Apply Florence-2 + SAM 2 to Images Project
 
-Integration of the Microsoft Florence-2 model for prompt-based object detection.
+Integration of the Microsoft Florence-2 model for prompt-based object detection with SAM 2 post mask segmentation.
 
 <p align="center">
   <a href="#Overview">Overview</a> •
