@@ -47,22 +47,27 @@ S_MODEL_DATA = {"session_id": None, "model_meta": None}
 
 
 # fetching some images for preview
-def get_images_infos_for_preview():
+def get_images_infos_for_preview(total_samples_needed: int = 400):
     if len(g.DATASET_IDS) > 0:
         datasets_list = [g.api.dataset.get_info_by_id(ds_id) for ds_id in g.DATASET_IDS]
     else:
         datasets_list = g.api.dataset.get_list(g.project_id)
     IMAGES_INFO_LIST = []
     for dataset in datasets_list:
+        if dataset.images_count == 0:
+            continue
+
         if len(datasets_list) == 1:
-            samples_count = dataset.images_count
+            samples_count = min(dataset.images_count, total_samples_needed)
         else:
-            samples_count = dataset.images_count * (100 - len(datasets_list)) // 100
+            samples_count = min(max(1, dataset.images_count * (100 - len(datasets_list)) // 100), total_samples_needed)
+        
         if samples_count == 0:
-            break
+            continue
 
         IMAGES_INFO_LIST += random.sample(g.api.image.get_list(dataset.id), samples_count)
-        if len(IMAGES_INFO_LIST) >= 1000:
+        if len(IMAGES_INFO_LIST) >= total_samples_needed:
+            IMAGES_INFO_LIST = IMAGES_INFO_LIST[:total_samples_needed]
             break
     return IMAGES_INFO_LIST
 
