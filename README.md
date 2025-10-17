@@ -11,7 +11,7 @@ Integration of the Microsoft Florence-2 model for prompt-based object detection 
   <a href="#Examples">Examples</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](../../../../supervisely-ecosystem/apply-florence-2-to-images-project)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/apply-florence-2-to-images-project)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervisely.com/slack)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/apply-florence-2-to-images-project)
 [![views](https://app.supervisely.com/img/badges/views/supervisely-ecosystem/apply-florence-2-to-images-project.png)](https://supervisely.com)
@@ -26,7 +26,7 @@ Application allows you to label project images using the Florence-2 detection mo
 Application key points:
 
 - Select project or dataset to label
-- Serve models by [Serve Florence-2](../../../../supervisely-ecosystem/serve-florence-2) and [Serve Segment Anything 2.1](../../../../supervisely-ecosystem/serve-segment-anything-2) apps. The `Florence-2-large` and `SAM 2.1 Hiera small` models will be deployed automatically. You can change it if needed.
+- Serve models by [Serve Florence-2](../../../../supervisely-ecosystem/serve-florence-2) and [Serve Segment Anything 2.1](https://ecosystem.supervisely.com/apps/serve-segment-anything-2) apps. The `Florence-2-large` and `SAM 2.1 Hiera small` models will be deployed automatically. You can change it if needed.
 
   <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/serve-florence-2" src="https://github.com/user-attachments/assets/32819dd4-4f2e-44df-becc-b7c3844dfaf9" height="70px" margin-bottom="20px"/>
 
