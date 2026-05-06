@@ -4,7 +4,7 @@
 	"version": "2.0.0",
 	"description": "Text-Prompted Object Detection with Mask Segmentation",
 	"docker_image": "supervisely/base-py-sdk:6.73.564",
-	"instance_version": "6.12.12",
+	"instance_version": "6.15.60",
 	"categories": [
 		"neural network",
 		"object detection",
